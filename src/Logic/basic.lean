@@ -16,16 +16,19 @@ instance : Subsingleton Empty := ⟨λ a => a.elim⟩
 
 -/
 
-theorem Prod.ext_iff (p q : α × β) :
-  p = q ↔ p.1 = q.1 ∧ p.2 = q.2 := 
-by
-  cases p;
-  cases q;
+theorem Prod.ext_iff : ∀ (p q : α × β),
+  p = q ↔ p.1 = q.1 ∧ p.2 = q.2
+  | (p1, p2), (q1, q2) =>
+  by
   split;
-  simp;
-  admit;
+    intro h;
+    rw h;
+    split;
+      rfl;
+    rfl;
+  intro ⟨(h1 : p1 = q1), (h2 : p2 = q2)⟩;
+  rw [h1, h2];
 
-#check Prod.ext
 
 instance Subsingleton.prod {α β : Type _}
   [Subsingleton α] [Subsingleton β] : 
@@ -36,6 +39,10 @@ instance Subsingleton.prod {α β : Type _}
   cases b; 
   -- todo(yakov) : ext tactic
   rw Prod.ext_iff;
+  split;
+  simp;
+  simp;
+  admit;
   admit;
   ⟩
 
