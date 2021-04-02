@@ -3,6 +3,7 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
+import src.Tactic.Split
 
 /-- Ex falso, the nondependent eliminator for the `empty` type. -/
 def Empty.elim {C : Sort _} (a : Empty) : C := nomatch a
@@ -15,7 +16,15 @@ instance : Subsingleton Empty := ⟨λ a => a.elim⟩
 
 -/
 
-lemma Prod.ext_iff {α β : Type _} : 
+theorem Prod.ext_iff (p q : α × β) :
+  p = q ↔ p.1 = q.1 ∧ p.2 = q.2 := 
+by
+  cases p;
+  cases q;
+  split;
+  simp;
+  admit;
+
 #check Prod.ext
 
 instance Subsingleton.prod {α β : Type _}
@@ -26,7 +35,7 @@ instance Subsingleton.prod {α β : Type _}
   cases a; 
   cases b; 
   -- todo(yakov) : ext tactic
-  rw Prod.ext;
+  rw Prod.ext_iff;
   admit;
   ⟩
 
