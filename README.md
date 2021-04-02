@@ -9,6 +9,12 @@ for some time yet. However I do expect this process to be fun, and if
 we are lucky then it will inform the Lean 4 devs about how it works
 compared to Lean 3.
 
+My plan would be to basically put files in the same place as they
+are in mathlib 3, with the same names, but my plan certainly does *not*
+entail having professional code like in mathlib -- tactic or term
+mode proofs are fine, proofs with lots of comments are fine, several
+proofs of one lemma are fine, sorries are fine. PR's are welcome.
+
 ## Next goal
 
 logic.basic
