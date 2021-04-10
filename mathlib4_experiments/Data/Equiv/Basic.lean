@@ -8,7 +8,7 @@ Authors: Leonardo de Moura, Mario Carneiro
 
 
 
-import src.Data.Notation
+import mathlib4_experiments.Data.Notation
 
 
 
