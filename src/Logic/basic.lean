@@ -29,6 +29,13 @@ theorem Prod.ext_iff : ∀ (p q : α × β),
   intro ⟨(h1 : p1 = q1), (h2 : p2 = q2)⟩;
   rw [h1, h2];
 
+@[simp] theorem eq_iff_true_of_subsingleton [Subsingleton α] (x y : α) :
+  x = y ↔ True :=
+by 
+  split;
+    simp;
+  intro _;
+  apply Subsingleton.elim;
 
 instance Subsingleton.prod {α β : Type _}
   [Subsingleton α] [Subsingleton β] : 
@@ -40,249 +47,163 @@ instance Subsingleton.prod {α β : Type _}
   -- todo(yakov) : ext tactic
   rw Prod.ext_iff;
   split;
-  simp;
-  simp;
-  admit;
-  admit;
-  ⟩
-
-#exit
-
-instance : decidable_eq empty := λa, a.elim
-
-instance sort.inhabited : inhabited (Sort*) := ⟨punit⟩
-instance sort.inhabited' : inhabited (default (Sort*)) := ⟨punit.star⟩
-
-instance psum.inhabited_left {α β} [inhabited α] : inhabited (psum α β) := ⟨psum.inl (default _)⟩
-instance psum.inhabited_right {α β} [inhabited β] : inhabited (psum α β) := ⟨psum.inr (default _)⟩
-
-@[priority 10] instance decidable_eq_of_subsingleton
-  {α} [subsingleton α] : decidable_eq α
-| a b := is_true (subsingleton.elim a b)
-
-@[simp] lemma eq_iff_true_of_subsingleton [subsingleton α] (x y : α) :
-  x = y ↔ true :=
-by cc
-
-lemma subsingleton_of_forall_eq {α : Sort*} (x : α) (h : ∀ y, y = x) : subsingleton α :=
-⟨λ a b, (h a).symm ▸ (h b).symm ▸ rfl⟩
-
-lemma subsingleton_iff_forall_eq {α : Sort*} (x : α) : subsingleton α ↔ ∀ y, y = x :=
-⟨λ h y, @subsingleton.elim _ h y x, subsingleton_of_forall_eq x⟩
-
-/-- Add an instance to "undo" coercion transitivity into a chain of coercions, because
-   most simp lemmas are stated with respect to simple coercions and will not match when
-   part of a chain. -/
-@[simp] theorem coe_coe {α β γ} [has_coe α β] [has_coe_t β γ]
-  (a : α) : (a : γ) = (a : β) := rfl
-
-theorem coe_fn_coe_trans
-  {α β γ} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_fun γ]
-  (x : α) : @coe_fn α _ x = @coe_fn β _ x := rfl
-
-@[simp] theorem coe_fn_coe_base
-  {α β} [has_coe α β] [has_coe_to_fun β]
-  (x : α) : @coe_fn α _ x = @coe_fn β _ x := rfl
-
-theorem coe_sort_coe_trans
-  {α β γ} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_sort γ]
-  (x : α) : @coe_sort α _ x = @coe_sort β _ x := rfl
-
-/--
-Many structures such as bundled morphisms coerce to functions so that you can
-transparently apply them to arguments. For example, if `e : α ≃ β` and `a : α`
-then you can write `e a` and this is elaborated as `⇑e a`. This type of
-coercion is implemented using the `has_coe_to_fun` type class. There is one
-important consideration:
-
-If a type coerces to another type which in turn coerces to a function,
-then it **must** implement `has_coe_to_fun` directly:
-```lean
-structure sparkling_equiv (α β) extends α ≃ β
-
--- if we add a `has_coe` instance,
-instance {α β} : has_coe (sparkling_equiv α β) (α ≃ β) :=
-⟨sparkling_equiv.to_equiv⟩
-
--- then a `has_coe_to_fun` instance **must** be added as well:
-instance {α β} : has_coe_to_fun (sparkling_equiv α β) :=
-⟨λ _, α → β, λ f, f.to_equiv.to_fun⟩
-```
-
-(Rationale: if we do not declare the direct coercion, then `⇑e a` is not in
-simp-normal form. The lemma `coe_fn_coe_base` will unfold it to `⇑↑e a`. This
-often causes loops in the simplifier.)
--/
-library_note "function coercion"
-
-@[simp] theorem coe_sort_coe_base
-  {α β} [has_coe α β] [has_coe_to_sort β]
-  (x : α) : @coe_sort α _ x = @coe_sort β _ x := rfl
-
-/-- `pempty` is the universe-polymorphic analogue of `empty`. -/
-@[derive decidable_eq]
-inductive {u} pempty : Sort u
-
-/-- Ex falso, the nondependent eliminator for the `pempty` type. -/
-def pempty.elim {C : Sort*} : pempty → C.
-
-
-#exit
-
-Lean 3 version below
+    allGoals { simp }; ⟩
 
 /-
-Copyright (c) 2016 Jeremy Avigad. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jeremy Avigad, Leonardo de Moura
+
+Kenny term mode version
+
+instance {α : Type u} {β : Type v} [Subsingleton α] [Subsingleton β] : Subsingleton (α × β) :=
+⟨λ ⟨a₁, b₁⟩ ⟨a₂, b₂⟩ => congr (congrArg _ $ Subsingleton.elim _ _) (Subsingleton.elim _ _)⟩
+
 -/
-import tactic.doc_commands
-import tactic.reserved_notation
+instance : DecidableEq Empty := λa => a.elim
+
+instance sort.inhabited : Inhabited (Sort _) := ⟨PUnit⟩
+instance sort.inhabited' : 
+  Inhabited (@Inhabited.default (Sort _) _) := ⟨PUnit.unit⟩
+
+instance psum.inhabited_left {α β}
+  [Inhabited α] : Inhabited (PSum α β) :=
+⟨PSum.inl Inhabited.default⟩
+
+instance psum.inhabited_right {α β}
+  [Inhabited β] : Inhabited (PSum α β) :=
+⟨PSum.inr Inhabited.default⟩
+
+instance decidable_eq_of_subsingleton
+  {α} [Subsingleton α] : DecidableEq α
+| a, b => isTrue (Subsingleton.elim a b)
+
+theorem subsingleton_of_forall_eq {α : Sort _}
+  (x : α) (h : ∀ y, y = x) : Subsingleton α :=
+⟨λ a b => (h a).symm ▸ (h b).symm ▸ rfl⟩
+
+theorem subsingleton_iff_forall_eq {α : Sort _} (x : α) :
+  Subsingleton α ↔ ∀ y, y = x :=
+⟨λ h y => @Subsingleton.elim _ h y x, subsingleton_of_forall_eq x⟩
+
 
 /-!
-# Basic logic properties
 
-This file is one of the earliest imports in mathlib.
+# I don't understand coercions in Lean 4 so I'm skipping this stuff
 
-## Implementation notes
+-- @[simp] theorem coe_coe {α β γ} [Coe α β] [has_coe_t β γ]
+--   (a : α) : (a : γ) = (a : β) := rfl
+-- /-- Add an instance to "undo" coercion transitivity into a chain of coercions, because
+--    most simp lemmas are stated with respect to simple coercions and will not match when
+--    part of a chain. -/
+-- @[simp] theorem coe_coe {α β γ} [Coe α β] [has_coe_t β γ]
+--   (a : α) : (a : γ) = (a : β) := rfl
 
-Theorems that require decidability hypotheses are in the namespace "decidable".
-Classical versions are in the namespace "classical".
+-- theorem coe_fn_coe_trans
+--   {α β γ} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_fun γ]
+--   (x : α) : @coe_fn α _ x = @coe_fn β _ x := rfl
 
-In the presence of automation, this whole file may be unnecessary. On the other hand,
-maybe it is useful for writing automation.
+-- @[simp] theorem coe_fn_coe_base
+--   {α β} [has_coe α β] [has_coe_to_fun β]
+--   (x : α) : @coe_fn α _ x = @coe_fn β _ x := rfl
+
+-- theorem coe_sort_coe_trans
+--   {α β γ} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_sort γ]
+--   (x : α) : @coe_sort α _ x = @coe_sort β _ x := rfl
+
+-- /--
+-- Many structures such as bundled morphisms coerce to functions so that you can
+-- transparently apply them to arguments. For example, if `e : α ≃ β` and `a : α`
+-- then you can write `e a` and this is elaborated as `⇑e a`. This type of
+-- coercion is implemented using the `has_coe_to_fun` type class. There is one
+-- important consideration:
+
+-- If a type coerces to another type which in turn coerces to a function,
+-- then it **must** implement `has_coe_to_fun` directly:
+-- ```lean
+-- structure sparkling_equiv (α β) extends α ≃ β
+
+-- -- if we add a `has_coe` instance,
+-- instance {α β} : has_coe (sparkling_equiv α β) (α ≃ β) :=
+-- ⟨sparkling_equiv.to_equiv⟩
+
+-- -- then a `has_coe_to_fun` instance **must** be added as well:
+-- instance {α β} : has_coe_to_fun (sparkling_equiv α β) :=
+-- ⟨λ _, α → β, λ f, f.to_equiv.to_fun⟩
+-- ```
+
+-- (Rationale: if we do not declare the direct coercion, then `⇑e a` is not in
+-- simp-normal form. The lemma `coe_fn_coe_base` will unfold it to `⇑↑e a`. This
+-- often causes loops in the simplifier.)
+-- -/
+-- --library_note "function coercion"
+
+-- @[simp] theorem coe_sort_coe_base
+--   {α β} [has_coe α β] [has_coe_to_sort β]
+--   (x : α) : @coe_sort α _ x = @coe_sort β _ x := rfl
 -/
-
-local attribute [instance, priority 10] classical.prop_decidable
-
-section miscellany
-
-/- We add the `inline` attribute to optimize VM computation using these declarations. For example,
-  `if p ∧ q then ... else ...` will not evaluate the decidability of `q` if `p` is false. -/
-attribute [inline] and.decidable or.decidable decidable.false xor.decidable iff.decidable
-  decidable.true implies.decidable not.decidable ne.decidable
-  bool.decidable_eq decidable.to_bool
-
-attribute [simp] cast_eq cast_heq
-
-variables {α : Type*} {β : Type*}
-
-/-- An identity function with its main argument implicit. This will be printed as `hidden` even
-if it is applied to a large term, so it can be used for elision,
-as done in the `elide` and `unelide` tactics. -/
-@[reducible] def hidden {α : Sort*} {a : α} := a
-
-/-- Ex falso, the nondependent eliminator for the `empty` type. -/
-def empty.elim {C : Sort*} : empty → C.
-
-instance : subsingleton empty := ⟨λa, a.elim⟩
-
-instance subsingleton.prod {α β : Type*} [subsingleton α] [subsingleton β] : subsingleton (α × β) :=
-⟨by { intros a b, cases a, cases b, congr, }⟩
-
-instance : decidable_eq empty := λa, a.elim
-
-instance sort.inhabited : inhabited (Sort*) := ⟨punit⟩
-instance sort.inhabited' : inhabited (default (Sort*)) := ⟨punit.star⟩
-
-instance psum.inhabited_left {α β} [inhabited α] : inhabited (psum α β) := ⟨psum.inl (default _)⟩
-instance psum.inhabited_right {α β} [inhabited β] : inhabited (psum α β) := ⟨psum.inr (default _)⟩
-
-@[priority 10] instance decidable_eq_of_subsingleton
-  {α} [subsingleton α] : decidable_eq α
-| a b := is_true (subsingleton.elim a b)
-
-@[simp] lemma eq_iff_true_of_subsingleton [subsingleton α] (x y : α) :
-  x = y ↔ true :=
-by cc
-
-lemma subsingleton_of_forall_eq {α : Sort*} (x : α) (h : ∀ y, y = x) : subsingleton α :=
-⟨λ a b, (h a).symm ▸ (h b).symm ▸ rfl⟩
-
-lemma subsingleton_iff_forall_eq {α : Sort*} (x : α) : subsingleton α ↔ ∀ y, y = x :=
-⟨λ h y, @subsingleton.elim _ h y x, subsingleton_of_forall_eq x⟩
-
-/-- Add an instance to "undo" coercion transitivity into a chain of coercions, because
-   most simp lemmas are stated with respect to simple coercions and will not match when
-   part of a chain. -/
-@[simp] theorem coe_coe {α β γ} [has_coe α β] [has_coe_t β γ]
-  (a : α) : (a : γ) = (a : β) := rfl
-
-theorem coe_fn_coe_trans
-  {α β γ} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_fun γ]
-  (x : α) : @coe_fn α _ x = @coe_fn β _ x := rfl
-
-@[simp] theorem coe_fn_coe_base
-  {α β} [has_coe α β] [has_coe_to_fun β]
-  (x : α) : @coe_fn α _ x = @coe_fn β _ x := rfl
-
-theorem coe_sort_coe_trans
-  {α β γ} [has_coe α β] [has_coe_t_aux β γ] [has_coe_to_sort γ]
-  (x : α) : @coe_sort α _ x = @coe_sort β _ x := rfl
-
-/--
-Many structures such as bundled morphisms coerce to functions so that you can
-transparently apply them to arguments. For example, if `e : α ≃ β` and `a : α`
-then you can write `e a` and this is elaborated as `⇑e a`. This type of
-coercion is implemented using the `has_coe_to_fun` type class. There is one
-important consideration:
-
-If a type coerces to another type which in turn coerces to a function,
-then it **must** implement `has_coe_to_fun` directly:
-```lean
-structure sparkling_equiv (α β) extends α ≃ β
-
--- if we add a `has_coe` instance,
-instance {α β} : has_coe (sparkling_equiv α β) (α ≃ β) :=
-⟨sparkling_equiv.to_equiv⟩
-
--- then a `has_coe_to_fun` instance **must** be added as well:
-instance {α β} : has_coe_to_fun (sparkling_equiv α β) :=
-⟨λ _, α → β, λ f, f.to_equiv.to_fun⟩
-```
-
-(Rationale: if we do not declare the direct coercion, then `⇑e a` is not in
-simp-normal form. The lemma `coe_fn_coe_base` will unfold it to `⇑↑e a`. This
-often causes loops in the simplifier.)
--/
-library_note "function coercion"
-
-@[simp] theorem coe_sort_coe_base
-  {α β} [has_coe α β] [has_coe_to_sort β]
-  (x : α) : @coe_sort α _ x = @coe_sort β _ x := rfl
 
 /-- `pempty` is the universe-polymorphic analogue of `empty`. -/
-@[derive decidable_eq]
-inductive {u} pempty : Sort u
+--@[derive decidable_eq]
+inductive PEmpty : Type u
 
 /-- Ex falso, the nondependent eliminator for the `pempty` type. -/
-def pempty.elim {C : Sort*} : pempty → C.
+def PEmpty.elim {C : Sort v} : PEmpty → C :=
+λ a => nomatch a
 
-instance subsingleton_pempty : subsingleton pempty := ⟨λa, a.elim⟩
+instance subsingleton_pempty : Subsingleton PEmpty := ⟨λ a => a.elim⟩
 
-@[simp] lemma not_nonempty_pempty : ¬ nonempty pempty :=
-assume ⟨h⟩, h.elim
+@[simp] theorem not_nonempty_pempty : ¬ Nonempty PEmpty :=
+λ ⟨h⟩ => h.elim
 
-@[simp] theorem forall_pempty {P : pempty → Prop} : (∀ x : pempty, P x) ↔ true :=
-⟨λ h, trivial, λ h x, by cases x⟩
+@[simp] theorem forall_pempty {P : PEmpty → Prop} :
+  (∀ x : PEmpty, P x) ↔ True :=
+⟨λ _ => True.intro, λ _ x => x.elim⟩
 
-@[simp] theorem exists_pempty {P : pempty → Prop} : (∃ x : pempty, P x) ↔ false :=
-⟨λ h, by { cases h with w, cases w }, false.elim⟩
+@[simp] theorem exists_pempty {P : PEmpty → Prop} :
+  (∃ x : PEmpty, P x) ↔ False :=
+⟨λ ⟨x, _⟩ => x.elim, False.elim⟩
 
-lemma congr_arg_heq {α} {β : α → Sort*} (f : ∀ a, β a) : ∀ {a₁ a₂ : α}, a₁ = a₂ → f a₁ == f a₂
-| a _ rfl := heq.rfl
+-- TODO -- find out how to do this using equation compiler
+theorem congr_arg_heq {α} {β : α → Sort u} (f : ∀ a, β a) : 
+  ∀ {a₁ a₂ : α}, a₁ = a₂ → f a₁ ≅ f a₂
+| _, _, (Eq.refl _) => HEq.rfl
 
-lemma plift.down_inj {α : Sort*} : ∀ (a b : plift α), a.down = b.down → a = b
-| ⟨a⟩ ⟨b⟩ rfl := rfl
+-- this will work when I switch to nightly, apparently?
+--macro "lemma" n:declId sig:declSig val:declVal : command => `(theorem $n $sig $val)
 
--- missing [symm] attribute for ne in core.
-attribute [symm] ne.symm
+theorem plift.down_inj {α : Sort u} : ∀ (a b : PLift α), a.down = b.down → a = b
+| ⟨_⟩, ⟨_⟩, (Eq.refl _) => rfl
 
-lemma ne_comm {α} {a b : α} : a ≠ b ↔ b ≠ a := ⟨ne.symm, ne.symm⟩
+-- don't know analogue in Lean 4
+-- attribute [symm] ne.symm
 
-@[simp] lemma eq_iff_eq_cancel_left {b c : α} :
+theorem ne_comm {α} {a b : α} : a ≠ b ↔ b ≠ a := ⟨Ne.symm, Ne.symm⟩
+
+example (a b : α) (P : α → Prop) (h : a = b) : P a = P b :=
+by rw h
+
+example (P : Prop) : P = P := by skip; rfl;
+
+example (P : Prop) : P ↔ P := by rfl;
+
+example (a b : α) (P : α → Prop) (h : a = b) : P a ↔ P b :=
+by rw h;
+
+
+@[simp] theorem eq_iff_eq_cancel_left {b c : α} :
   (∀ {a}, a = b ↔ a = c) ↔ (b = c) :=
-⟨λ h, by rw [← h], λ h a, by rw h⟩
+⟨λ h => by skip; rw [← h], λ h a => by rw h; exact Iff.rfl⟩
+
+#exit
+
+/-
+
+
+
+
+
+
+
+
+
 
 @[simp] lemma eq_iff_eq_cancel_right {a b : α} :
   (∀ {c}, a = c ↔ b = c) ↔ (a = b) :=
@@ -1497,3 +1418,4 @@ by { by_cases hp : p; by_cases hq : q; simp [hp, hq] }
 
 
 end ite
+-/
