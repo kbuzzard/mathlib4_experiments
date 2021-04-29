@@ -3,7 +3,10 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
-import src.Tactic.Split
+import mathlib4.Tactic.Split
+import mathlib4.Tactic.Refl
+
+section miscellany
 
 /-- Ex falso, the nondependent eliminator for the `empty` type. -/
 def Empty.elim {C : Sort _} (a : Empty) : C := nomatch a
@@ -18,14 +21,14 @@ instance : Subsingleton Empty := ⟨λ a => a.elim⟩
 
 theorem Prod.ext_iff : ∀ (p q : α × β),
   p = q ↔ p.1 = q.1 ∧ p.2 = q.2
-  | (p1, p2), (q1, q2) =>
-  by
+| (p1, p2), (q1, q2) => by
   split;
     intro h;
     rw h;
     split;
       rfl;
     rfl;
+  skip;
   intro ⟨(h1 : p1 = q1), (h2 : p2 = q2)⟩;
   rw [h1, h2];
 
@@ -155,7 +158,7 @@ instance subsingleton_pempty : Subsingleton PEmpty := ⟨λ a => a.elim⟩
 
 @[simp] theorem forall_pempty {P : PEmpty → Prop} :
   (∀ x : PEmpty, P x) ↔ True :=
-⟨λ _ => True.intro, λ _ x => x.elim⟩
+⟨λ _ => trivial, λ _ x => x.elim⟩
 
 @[simp] theorem exists_pempty {P : PEmpty → Prop} :
   (∃ x : PEmpty, P x) ↔ False :=
@@ -167,7 +170,7 @@ theorem congr_arg_heq {α} {β : α → Sort u} (f : ∀ a, β a) :
 | _, _, (Eq.refl _) => HEq.rfl
 
 -- this will work when I switch to nightly, apparently?
---macro "lemma" n:declId sig:declSig val:declVal : command => `(theorem $n $sig $val)
+macro "lemma" n:declId sig:declSig val:declVal : command => `(theorem $n $sig $val)
 
 theorem plift.down_inj {α : Sort u} : ∀ (a b : PLift α), a.down = b.down → a = b
 | ⟨_⟩, ⟨_⟩, (Eq.refl _) => rfl
@@ -175,39 +178,15 @@ theorem plift.down_inj {α : Sort u} : ∀ (a b : PLift α), a.down = b.down →
 -- don't know analogue in Lean 4
 -- attribute [symm] ne.symm
 
-theorem ne_comm {α} {a b : α} : a ≠ b ↔ b ≠ a := ⟨Ne.symm, Ne.symm⟩
-
-example (a b : α) (P : α → Prop) (h : a = b) : P a = P b :=
-by rw h
-
-example (P : Prop) : P = P := by skip; rfl;
-
-example (P : Prop) : P ↔ P := by rfl;
-
-example (a b : α) (P : α → Prop) (h : a = b) : P a ↔ P b :=
-by rw h;
-
+lemma ne_comm {α} {a b : α} : a ≠ b ↔ b ≠ a := ⟨Ne.symm, Ne.symm⟩
 
 @[simp] theorem eq_iff_eq_cancel_left {b c : α} :
   (∀ {a}, a = b ↔ a = c) ↔ (b = c) :=
-⟨λ h => by skip; rw [← h], λ h a => by rw h; exact Iff.rfl⟩
+⟨λ h => by rw [← h], λ h a => by rw h; refl⟩
 
-#exit
-
-/-
-
-
-
-
-
-
-
-
-
-
-@[simp] lemma eq_iff_eq_cancel_right {a b : α} :
+@[simp] theorem eq_iff_eq_cancel_right {a b : α} :
   (∀ {c}, a = c ↔ b = c) ↔ (a = b) :=
-⟨λ h, by rw h, λ h a, by rw h⟩
+⟨λ h => by rw h, λ h a => by rw h; refl⟩
 
 /-- Wrapper for adding elementary propositions to the type class systems.
 Warning: this can easily be abused. See the rest of this docstring for details.
@@ -226,10 +205,12 @@ The compromise is to add the assumption `[fact p.prime]` to `zmod.field`.
 
 In particular, this class is not intended for turning the type class system
 into an automated theorem prover for first order logic. -/
-class fact (p : Prop) : Prop := (out [] : p)
+class fact (p : Prop) : Prop := (out' : p)
+
+def fact.out (p : Prop) [c : fact p] : p := fact.out'
 
 lemma fact.elim {p : Prop} (h : fact p) : p := h.1
-lemma fact_iff {p : Prop} : fact p ↔ p := ⟨λ h, h.1, λ h, ⟨h⟩⟩
+lemma fact_iff {p : Prop} : fact p ↔ p := ⟨λ h => h.1, λ h => ⟨h⟩⟩
 
 end miscellany
 
@@ -237,53 +218,62 @@ end miscellany
 ### Declarations about propositional connectives
 -/
 
-theorem false_ne_true : false ≠ true
-| h := h.symm ▸ trivial
+theorem false_ne_true : False ≠ True
+| h => h.symm ▸ trivial
 
 section propositional
-variables {a b c d : Prop}
+
+variable {a b c d : Prop}
 
 /-! ### Declarations about `implies` -/
 
-instance : is_refl Prop iff := ⟨iff.refl⟩
-instance : is_trans Prop iff := ⟨λ _ _ _, iff.trans⟩
+-- instance : is_refl Prop iff := ⟨iff.refl⟩
+-- instance : IsTrans Prop iff := ⟨λ _ _ _ => iff.trans⟩
 
-theorem iff_of_eq (e : a = b) : a ↔ b := e ▸ iff.rfl
+theorem iff_of_eq (e : a = b) : a ↔ b := e ▸ Iff.rfl
 
 theorem iff_iff_eq : (a ↔ b) ↔ a = b := ⟨propext, iff_of_eq⟩
 
-@[simp] lemma eq_iff_iff {p q : Prop} : (p = q) ↔ (p ↔ q) := iff_iff_eq.symm
+@[simp] theorem eq_iff_iff {p q : Prop} : (p = q) ↔ (p ↔ q) := iff_iff_eq.symm
 
-@[simp] theorem imp_self : (a → a) ↔ true := iff_true_intro id
+-- can't find in Lean 4
+theorem iff_true_intro {P : Prop} : P → (P ↔ True) :=
+λ h => ⟨λ _=> trivial, λ _ => h⟩
 
-theorem imp_intro {α β : Prop} (h : α) : β → α := λ _, h
+@[simp] theorem imp_self : (a → a) ↔ True := iff_true_intro id
 
-theorem imp_false : (a → false) ↔ ¬ a := iff.rfl
+theorem imp_intro {α β : Prop} (h : α) : β → α := λ _ => h
+
+theorem imp_false : (a → False) ↔ ¬ a := Iff.rfl
 
 theorem imp_and_distrib {α} : (α → b ∧ c) ↔ (α → b) ∧ (α → c) :=
-⟨λ h, ⟨λ ha, (h ha).left, λ ha, (h ha).right⟩,
- λ h ha, ⟨h.left ha, h.right ha⟩⟩
+⟨λ h => ⟨λ ha => (h ha).left, λ ha => (h ha).right⟩,
+ λ h ha => ⟨h.left ha, h.right ha⟩⟩
+
 
 @[simp] theorem and_imp : (a ∧ b → c) ↔ (a → b → c) :=
-iff.intro (λ h ha hb, h ⟨ha, hb⟩) (λ h ⟨ha, hb⟩, h ha hb)
+Iff.intro (λ h ha hb => h ⟨ha, hb⟩) (λ h ⟨ha, hb⟩ => h ha hb)
 
-theorem iff_def : (a ↔ b) ↔ (a → b) ∧ (b → a) :=
-iff_iff_implies_and_implies _ _
+theorem iff_def {a b : Prop} : (a ↔ b) ↔ (a → b) ∧ (b → a) :=
+⟨λ ⟨h1, h2⟩ => ⟨h1, h2⟩, λ ⟨h1, h2⟩ => ⟨h1, h2⟩⟩
+
+theorem And.comm {P Q : Prop} : P ∧ Q ↔ Q ∧ P := 
+⟨λ ⟨h1, h2⟩ => ⟨h2, h1⟩, λ ⟨h1, h2⟩ => ⟨h2, h1⟩⟩
 
 theorem iff_def' : (a ↔ b) ↔ (b → a) ∧ (a → b) :=
-iff_def.trans and.comm
+iff_def.trans And.comm
 
-theorem imp_true_iff {α : Sort*} : (α → true) ↔ true :=
-iff_true_intro $ λ_, trivial
+theorem imp_true_iff {α : Sort u} : (α → True) ↔ True :=
+iff_true_intro $ λ _ => trivial
 
 theorem imp_iff_right (ha : a) : (a → b) ↔ b :=
-⟨λf, f ha, imp_intro⟩
+⟨λ f => f ha, imp_intro⟩
 
 /-! ### Declarations about `not` -/
 
 /-- Ex falso for negation. From `¬ a` and `a` anything follows. This is the same as `absurd` with
 the arguments flipped, but it is in the `not` namespace so that projection notation can be used. -/
-def not.elim {α : Sort*} (H1 : ¬a) (H2 : a) : α := absurd H2 H1
+def not.elim {α : Sort u} (H1 : ¬a) (H2 : a) : α := absurd H2 H1
 
 @[reducible] theorem not.imp {a b : Prop} (H2 : ¬b) (H1 : a → b) : ¬a := mt H1 H2
 
@@ -293,18 +283,25 @@ mt not.elim
 theorem not_of_not_imp {a : Prop} : ¬(a → b) → ¬b :=
 mt imp_intro
 
-theorem dec_em (p : Prop) [decidable p] : p ∨ ¬p := decidable.em p
+theorem dec_em (p : Prop) [Decidable p] : p ∨ ¬p := Decidable.em p
 
-theorem em (p : Prop) : p ∨ ¬ p := classical.em _
+theorem em (p : Prop) : p ∨ ¬ p := Classical.em _
 
 theorem or_not {p : Prop} : p ∨ ¬ p := em _
 
-theorem by_contradiction {p} : (¬p → false) → p := decidable.by_contradiction
+/- all propositions are Decidable -/
+noncomputable local instance (priority := low) propDecidable (a : Prop) : Decidable a :=
+  Classical.choice <| match em a with
+    | Or.inl h => ⟨isTrue h⟩
+    | Or.inr h => ⟨isFalse h⟩
+
+theorem by_contradiction {p} : (¬p → False) → p := Decidable.byContradiction
+
 
 -- alias by_contradiction ← by_contra
-theorem by_contra {p} : (¬p → false) → p := decidable.by_contradiction
+theorem by_contra {p} : (¬p → False) → p := Decidable.byContradiction
 
-/--
+/-
 In most of mathlib, we use the law of excluded middle (LEM) and the axiom of choice (AC) freely.
 The `decidable` namespace contains versions of lemmas from the root namespace that explicitly
 attempt to avoid the axiom of choice, usually by adding decidability assumptions on the inputs.
@@ -312,9 +309,9 @@ attempt to avoid the axiom of choice, usually by adding decidability assumptions
 You can check if a lemma uses the axiom of choice by using `#print axioms foo` and seeing if
 `classical.choice` appears in the list.
 -/
-library_note "decidable namespace"
+--library_note "decidable namespace"
 
-/--
+/-
 As mathlib is primarily classical,
 if the type signature of a `def` or `lemma` does not require any `decidable` instances to state,
 it is preferable not to introduce any `decidable` instances that are needed in the proof
@@ -324,11 +321,13 @@ In the other direction, when `decidable` instances do appear in the type signatu
 it is better to use explicitly introduced ones rather than allowing Lean to automatically infer
 classical ones, as these may cause instance mismatch errors later.
 -/
-library_note "decidable arguments"
+--library_note "decidable arguments"
+
+lemma not_not_intro {P : Prop} : P → ¬ ¬ P := λ hp h => h hp
 
 -- See Note [decidable namespace]
-protected theorem decidable.not_not [decidable a] : ¬¬a ↔ a :=
-iff.intro decidable.by_contradiction not_not_intro
+protected theorem decidable.not_not [Decidable a] : ¬¬a ↔ a :=
+Iff.intro Decidable.byContradiction not_not_intro
 
 /-- The Double Negation Theorem: `¬ ¬ P` is equivalent to `P`.
 The left-to-right direction, double negation elimination (DNE),
@@ -338,42 +337,49 @@ is classically true but not constructively. -/
 theorem of_not_not : ¬¬a → a := by_contra
 
 -- See Note [decidable namespace]
-protected theorem decidable.of_not_imp [decidable a] (h : ¬ (a → b)) : a :=
-decidable.by_contradiction (not_not_of_not_imp h)
+protected theorem decidable.of_not_imp [Decidable a] (h : ¬ (a → b)) : a :=
+Decidable.byContradiction (not_not_of_not_imp h)
 
 theorem of_not_imp : ¬ (a → b) → a := decidable.of_not_imp
 
 -- See Note [decidable namespace]
-protected theorem decidable.not_imp_symm [decidable a] (h : ¬a → b) (hb : ¬b) : a :=
-decidable.by_contradiction $ hb ∘ h
+protected theorem decidable.not_imp_symm [Decidable a] (h : ¬a → b) (hb : ¬b) : a :=
+Decidable.byContradiction $ hb ∘ h
 
-theorem not.decidable_imp_symm [decidable a] : (¬a → b) → ¬b → a := decidable.not_imp_symm
+theorem not.decidable_imp_symm [Decidable a] : (¬a → b) → ¬b → a := decidable.not_imp_symm
 
 theorem not.imp_symm : (¬a → b) → ¬b → a := not.decidable_imp_symm
 
 -- See Note [decidable namespace]
-protected theorem decidable.not_imp_comm [decidable a] [decidable b] : (¬a → b) ↔ (¬b → a) :=
+protected theorem decidable.not_imp_comm [Decidable a] [Decidable b] : (¬a → b) ↔ (¬b → a) :=
 ⟨not.decidable_imp_symm, not.decidable_imp_symm⟩
 
 theorem not_imp_comm : (¬a → b) ↔ (¬b → a) := decidable.not_imp_comm
 
-@[simp] theorem imp_not_self : (a → ¬a) ↔ ¬a := ⟨λ h ha, h ha ha, λ h _, h⟩
+@[simp] theorem imp_not_self : (a → ¬a) ↔ ¬a := ⟨λ h ha => h ha ha, λ h _ => h⟩
 
-theorem decidable.not_imp_self [decidable a] : (¬a → a) ↔ a :=
-by { have := @imp_not_self (¬a), rwa decidable.not_not at this }
+theorem decidable.not_imp_self [Decidable a] : (¬a → a) ↔ a := by 
+  have this := @imp_not_self (¬a); 
+  rw decidable.not_not at this;
+  assumption;
 
 @[simp] theorem not_imp_self : (¬a → a) ↔ a := decidable.not_imp_self
 
 theorem imp.swap : (a → b → c) ↔ (b → a → c) :=
-⟨function.swap, function.swap⟩
+⟨flip, flip⟩ 
 
 theorem imp_not_comm : (a → ¬b) ↔ (b → ¬a) :=
 imp.swap
 
 /-! ### Declarations about `and` -/
 
+theorem and_congr_right (h : a → (b ↔ c)) : a ∧ b ↔ a ∧ c :=
+⟨λ ⟨ha, hb⟩ => ⟨ha, (h ha).1 hb⟩ , λ ⟨ha, hc⟩ => ⟨ha, (h ha).2 hc⟩⟩
+
+#exit
+
 theorem and_congr_left (h : c → (a ↔ b)) : a ∧ c ↔ b ∧ c :=
-and.comm.trans $ (and_congr_right h).trans and.comm
+And.comm.trans $ (and_congr_right h).trans and.comm
 
 theorem and_congr_left' (h : a ↔ b) : a ∧ c ↔ b ∧ c := and_congr h iff.rfl
 
@@ -426,6 +432,8 @@ by simp only [and.comm, ← and.congr_right_iff]
 
 @[simp] lemma and_self_right : (a ∧ b) ∧ b ↔ a ∧ b :=
 ⟨λ h, ⟨h.1.1, h.2⟩, λ h, ⟨⟨h.1, h.2⟩, h.2⟩⟩
+
+#exit
 
 /-! ### Declarations about `or` -/
 
