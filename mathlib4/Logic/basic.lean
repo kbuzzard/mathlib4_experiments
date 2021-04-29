@@ -376,20 +376,25 @@ imp.swap
 theorem and_congr_right (h : a → (b ↔ c)) : a ∧ b ↔ a ∧ c :=
 ⟨λ ⟨ha, hb⟩ => ⟨ha, (h ha).1 hb⟩ , λ ⟨ha, hc⟩ => ⟨ha, (h ha).2 hc⟩⟩
 
-#exit
-
 theorem and_congr_left (h : c → (a ↔ b)) : a ∧ c ↔ b ∧ c :=
-And.comm.trans $ (and_congr_right h).trans and.comm
+And.comm.trans $ (and_congr_right h).trans And.comm
 
-theorem and_congr_left' (h : a ↔ b) : a ∧ c ↔ b ∧ c := and_congr h iff.rfl
+lemma and_congr {a b c d : Prop} : (a ↔ c) → (b ↔ d) → (a ∧ b ↔ c ∧ d) :=
+λ ⟨hac, hca⟩ ⟨hbd, hdb⟩ => 
+  ⟨λ ⟨ha, hb⟩ => ⟨hac ha, hbd hb⟩, λ ⟨hc, hd⟩ => ⟨hca hc, hdb hd⟩⟩
 
-theorem and_congr_right' (h : b ↔ c) : a ∧ b ↔ a ∧ c := and_congr iff.rfl h
+theorem and_congr_left' (h : a ↔ b) : a ∧ c ↔ b ∧ c := and_congr h Iff.rfl
+
+theorem and_congr_right' (h : b ↔ c) : a ∧ b ↔ a ∧ c := and_congr Iff.rfl h
 
 theorem not_and_of_not_left (b : Prop) : ¬a → ¬(a ∧ b) :=
-mt and.left
+mt And.left
 
 theorem not_and_of_not_right (a : Prop) {b : Prop} : ¬b → ¬(a ∧ b) :=
-mt and.right
+mt And.right
+
+theorem and.imp {a b c d : Prop} : (a → c) → (b → d) → a ∧ b → c ∧ d :=
+λ hac hbd ⟨ha, hb⟩ => ⟨hac ha, hbd hb⟩
 
 theorem and.imp_left (h : a → b) : a ∧ c → b ∧ c :=
 and.imp h id
@@ -397,35 +402,50 @@ and.imp h id
 theorem and.imp_right (h : a → b) : c ∧ a → c ∧ b :=
 and.imp id h
 
+-- and.left_comm : ∀ {a b c : Prop}, a ∧ b ∧ c ↔ b ∧ a ∧ c
+
+theorem and.left_comm {a b c : Prop} : a ∧ b ∧ c ↔ b ∧ a ∧ c :=
+⟨λ ⟨ha, hb, hc⟩ => ⟨hb, ha, hc⟩, λ ⟨hb, ha, hc⟩ => ⟨ha, hb, hc⟩⟩
+
+@[simp] theorem Iff_self {p : Prop} : (p ↔ p) ↔ True :=
+⟨λ _ => trivial, λ _ => Iff.rfl⟩
+
 lemma and.right_comm : (a ∧ b) ∧ c ↔ (a ∧ c) ∧ b :=
-by simp only [and.left_comm, and.comm]
+by simp only [and.left_comm, And.comm, Iff_self]
 
 lemma and.rotate : a ∧ b ∧ c ↔ b ∧ c ∧ a :=
-by simp only [and.left_comm, and.comm]
+by simp only [and.left_comm, And.comm, Iff_self]
 
-theorem and_not_self_iff (a : Prop) : a ∧ ¬ a ↔ false :=
-iff.intro (assume h, (h.right) (h.left)) (assume h, h.elim)
+theorem and_not_self_iff (a : Prop) : a ∧ ¬ a ↔ False :=
+⟨λ h => (h.right) (h.left), (λ h => h.elim)⟩
 
-theorem not_and_self_iff (a : Prop) : ¬ a ∧ a ↔ false :=
-iff.intro (assume ⟨hna, ha⟩, hna ha) false.elim
+theorem not_and_self_iff (a : Prop) : ¬ a ∧ a ↔ False :=
+Iff.intro (λ ⟨hna, ha⟩ => hna ha) False.elim
 
 theorem and_iff_left_of_imp {a b : Prop} (h : a → b) : (a ∧ b) ↔ a :=
-iff.intro and.left (λ ha, ⟨ha, h ha⟩)
+Iff.intro And.left (λ ha => ⟨ha, h ha⟩)
 
 theorem and_iff_right_of_imp {a b : Prop} (h : b → a) : (a ∧ b) ↔ b :=
-iff.intro and.right (λ hb, ⟨h hb, hb⟩)
+Iff.intro And.right (λ hb => ⟨h hb, hb⟩)
 
 @[simp] theorem and_iff_left_iff_imp {a b : Prop} : ((a ∧ b) ↔ a) ↔ (a → b) :=
-⟨λ h ha, (h.2 ha).2, and_iff_left_of_imp⟩
+⟨λ h ha => (h.2 ha).2, and_iff_left_of_imp⟩
 
 @[simp] theorem and_iff_right_iff_imp {a b : Prop} : ((a ∧ b) ↔ b) ↔ (b → a) :=
-⟨λ h ha, (h.2 ha).1, and_iff_right_of_imp⟩
+⟨λ h ha => (h.2 ha).1, and_iff_right_of_imp⟩
 
-@[simp] lemma and.congr_right_iff : (a ∧ b ↔ a ∧ c) ↔ (a → (b ↔ c)) :=
-⟨λ h ha, by simp [ha] at h; exact h, and_congr_right⟩
+@[simp] theorem and.congr_right_iff : (a ∧ b ↔ a ∧ c) ↔ (a → (b ↔ c)) :=
+⟨λ h ha => by simp [ha] at h; exact h, and_congr_right⟩
 
-@[simp] lemma and.congr_left_iff : (a ∧ c ↔ b ∧ c) ↔ c → (a ↔ b) :=
-by simp only [and.comm, ← and.congr_right_iff]
+#exit
+
+#check @and.congr_right_iff
+
+example : ∀ {a b c : Prop}, a ∧ b ↔ a ∧ c ↔ a → (b ↔ c) := sorry
+example : ∀ {a b c : Prop}, a ↔ a ↔ a := sorry
+
+@[simp] theorem and.congr_left_iff : (a ∧ c ↔ b ∧ c) ↔ c → (a ↔ b) :=
+by simp only [And.comm, ← and.congr_right_iff]
 
 @[simp] lemma and_self_left : a ∧ a ∧ b ↔ a ∧ b :=
 ⟨λ h, ⟨h.1, h.2.2⟩, λ h, ⟨h.1, h.1, h.2⟩⟩
@@ -433,7 +453,6 @@ by simp only [and.comm, ← and.congr_right_iff]
 @[simp] lemma and_self_right : (a ∧ b) ∧ b ↔ a ∧ b :=
 ⟨λ h, ⟨h.1.1, h.2⟩, λ h, ⟨⟨h.1, h.2⟩, h.2⟩⟩
 
-#exit
 
 /-! ### Declarations about `or` -/
 
