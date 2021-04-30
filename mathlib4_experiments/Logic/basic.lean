@@ -3,8 +3,8 @@ Copyright (c) 2016 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
-import mathlib4.Tactic.Split
-import mathlib4.Tactic.Refl
+import mathlib4_experiments.Tactic.Split
+import mathlib4_experiments.Tactic.Refl
 
 section miscellany
 
