@@ -437,7 +437,10 @@ Iff.intro And.right (λ hb => ⟨h hb, hb⟩)
 @[simp] theorem and.congr_right_iff : (a ∧ b ↔ a ∧ c) ↔ (a → (b ↔ c)) :=
 ⟨λ h ha => by simp [ha] at h; exact h, and_congr_right⟩
 
-#exit
+/-
+
+TO_BE_PORTED
+
 
 #check @and.congr_right_iff
 
