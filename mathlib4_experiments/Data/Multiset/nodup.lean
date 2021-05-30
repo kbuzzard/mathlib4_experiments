@@ -21,7 +21,7 @@ open List
 /-- `nodup s` means that `s` has no duplicates, i.e. the multiplicity of
   any element is at most 1. -/
 def nodup (s : Multiset α) : Prop :=
-Quot.liftOn s List.nodup (λ s t p => propext _)--propext p.nodup_iff)
+Quot.liftOn s List.nodup (λ s t p => propext sorry)--propext p.nodup_iff)
 
 /-
 

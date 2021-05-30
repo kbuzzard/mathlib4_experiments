@@ -8,6 +8,7 @@ Authors: Leonardo de Moura, Jeremy Avigad, Minchao Wu, Mario Carneiro
 --import tactic.apply
 --import tactic.nth_rewrite
 import mathlib4_experiments.Data.Multiset.Basic
+import mathlib4_experiments.Data.Multiset.nodup
 
 /-!
 # Finite sets
