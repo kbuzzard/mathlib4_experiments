@@ -24,7 +24,7 @@ theorem Prod.ext_iff : ∀ (p q : α × β),
 | (p1, p2), (q1, q2) => by
   split;
     intro h;
-    rw h;
+    rw [h];
     split;
       rfl;
     rfl;
@@ -43,12 +43,12 @@ by
 instance Subsingleton.prod {α β : Type _}
   [Subsingleton α] [Subsingleton β] : 
   Subsingleton (α × β) :=
-⟨by 
+⟨by
   intro a b; 
   cases a; 
   cases b; 
   -- todo(yakov) : ext tactic
-  rw Prod.ext_iff;
+  rw [Prod.ext_iff];
   split;
     allGoals { simp }; ⟩
 
@@ -182,11 +182,11 @@ lemma ne_comm {α} {a b : α} : a ≠ b ↔ b ≠ a := ⟨Ne.symm, Ne.symm⟩
 
 @[simp] theorem eq_iff_eq_cancel_left {b c : α} :
   (∀ {a}, a = b ↔ a = c) ↔ (b = c) :=
-⟨λ h => by rw [← h], λ h a => by rw h; refl⟩
+⟨λ h => by rw [← h], λ h a => by rw [h]; refl⟩
 
 @[simp] theorem eq_iff_eq_cancel_right {a b : α} :
   (∀ {c}, a = c ↔ b = c) ↔ (a = b) :=
-⟨λ h => by rw h, λ h a => by rw h; refl⟩
+⟨λ h => by rw [h], λ h a => by rw [h]; refl⟩
 
 /-- Wrapper for adding elementary propositions to the type class systems.
 Warning: this can easily be abused. See the rest of this docstring for details.
@@ -360,7 +360,7 @@ theorem not_imp_comm : (¬a → b) ↔ (¬b → a) := decidable.not_imp_comm
 
 theorem decidable.not_imp_self [Decidable a] : (¬a → a) ↔ a := by 
   have this := @imp_not_self (¬a); 
-  rw decidable.not_not at this;
+  rw [decidable.not_not] at this;
   assumption;
 
 @[simp] theorem not_imp_self : (¬a → a) ↔ a := decidable.not_imp_self

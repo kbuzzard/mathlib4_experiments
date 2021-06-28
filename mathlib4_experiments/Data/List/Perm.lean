@@ -100,7 +100,7 @@ suffices ∀ {l₁ l₂}, l₁ ~ l₂ → pairwise R l₁ → pairwise R l₂ fr
   intros l₁ l₂ p d;
 --  revert l₂;
   induction d generalizing l₂ with
-  | nil => { rw ← p.nil_eq; exact pairwise.nil }
+  | nil => { rw [← p.nil_eq]; exact pairwise.nil }
   | @cons a l₁ h d IH => {
     have this : a ∈ l₂ := p.subset (mem_cons_self _ _);
     skip;

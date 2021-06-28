@@ -115,12 +115,12 @@ postfix:lead "⁻¹" => 2
 
 #print_notation "11"
 #print_notation "{}"
-#print_notation "$x"
+--#print_notation "$x"
 
 #print_notation "intro" : tactic
 #print_notation "rw [a]" : tactic
-#print_notation "cases _ with | $x => $y" : tactic
-#print_notation "$x <;> $y" : tactic
+--#print_notation "cases _ with | $x => $y" : tactic
+--#print_notation "$x <;> $y" : tactic
 
 #print_notation "#check 1" : command
 #print_notation "#print_notation \"\"" : command
