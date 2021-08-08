@@ -1,6 +1,6 @@
 set_option autoBoundImplicitLocal false
 
-universes u₁ u₂ v
+universe u₁ u₂ v
 
 
 

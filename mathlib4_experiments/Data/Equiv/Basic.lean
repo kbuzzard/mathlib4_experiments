@@ -14,7 +14,7 @@ import mathlib4_experiments.Data.Notation
 
 set_option autoBoundImplicitLocal false
 
-universes u₁ u₂ u₃ u₄ v
+universe u₁ u₂ u₃ u₄ v
 
 
 

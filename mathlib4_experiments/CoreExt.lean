@@ -43,7 +43,7 @@ instance : Subset (List α) := ⟨List.subset⟩
 theorem eq_nil_of_length_eq_zero {l : List α} (hl : length l = 0) : l = [] :=
 match l with
 | [] => rfl
-| x :: m => False.elim $ Nat.succNeZero (m.length) (List.length_cons x m ▸ hl)
+| x :: m => False.elim $ Nat.succ_ne_zero (m.length) (List.length_cons x m ▸ hl)
 
 end List
 
